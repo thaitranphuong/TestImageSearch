@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body style="background-color: gray;">
+        Chọn file để upload: 
+        <input type="file" name="photo" id="upLoadSinglePhoto">
+        <div id="image-container"></div>
+        <button onclick="submit()">Submit</button>
+        <button onclick="retrain()">Retrain</button>
+
+        <div id="resultContainer"></div>
+     <script>
+        
+
+        const submit = async () => {
+            const fileInput1 = document.querySelector('#upLoadSinglePhoto');
+            const file = fileInput1.files[0];
+            
+            const formData = new FormData();
+            formData.append("main_image", file);
+
+            let result = []
+
+            await fetch('http://localhost:8080/search', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(res => result = [...res])
+            
+            const resultContainer = document.getElementById('resultContainer');
+            let html = ''
+            
+            result.map(item => {
+                const parts = item.path.split("\\");
+                path = parts[parts.length - 1];
+                html = html + `<img src="http://localhost:8080/getimage/${path}" width="300" alt="">`})
+            
+            resultContainer.innerHTML = html;
+        }
+
+        const retrain = () => {
+            const fileInput1 = document.querySelector('#upLoadSinglePhoto');
+            const file = fileInput1.files[0];
+            
+            const formData = new FormData();
+            formData.append("main_image", file);
+
+            fetch('http://localhost:8080/retrain', {
+                method: 'POST',
+                body: formData
+            });
+        }
+
+
+        // Xử lý hiển thị ảnh khi chọn file
+        const input = document.getElementById("upLoadSinglePhoto");
+        const imageContainer = document.getElementById("image-container");
+
+        input.addEventListener("change", function() {
+            // Xóa các hình ảnh cũ trước khi hiển thị hình ảnh mới
+            imageContainer.innerHTML = "";
+            for (let i = 0; i < input.files.length; i++) {
+                const file = input.files[i];
+                const reader = new FileReader();
+        
+                // Định nghĩa hàm xử lý khi đọc file xong
+                reader.onload = function() {
+                    // Tạo phần tử img mới
+                    const img = document.createElement("img");
+                    img.width = 300;
+                    img.src = reader.result;
+                    imageContainer.appendChild(img);
+                };
+                // Đọc file dưới dạng URL
+                reader.readAsDataURL(file);
+            }
+        });
+</script>
+</body>
+</html>
